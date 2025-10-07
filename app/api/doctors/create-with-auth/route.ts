@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/api';
 import { CreateDoctorRequest } from '@/lib/types/doctor';
-import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,8 +64,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate a secure temporary password
-    const tempPassword = crypto.randomBytes(12).toString('base64').slice(0, 16);
+    // Set default password for new doctors
+    const tempPassword = 'doctor123';
     
     // Create auth user with admin client
     const { data: authUser, error: createUserError } = await adminSupabase.auth.admin.createUser({
@@ -138,24 +137,12 @@ export async function POST(request: NextRequest) {
         throw new Error(`Failed to associate doctor with hospitals: ${hospitalError.message}`);
       }
 
-      // Send password reset email to allow doctor to set their own password
-      const { error: resetError } = await adminSupabase.auth.admin.generateLink({
-        type: 'recovery',
-        email: body.email,
-        options: {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`
-        }
-      });
-
-      if (resetError) {
-        console.error('Failed to send password reset email:', resetError);
-        // Don't fail the entire operation if email fails
-      }
+      // Password is set to default "doctor123" - no need for password reset email
 
       return NextResponse.json({
         doctor,
         user_profile: userProfile,
-        message: 'Doctor created successfully. Password reset email sent.'
+        message: 'Doctor created successfully. Default password is "doctor123".'
       }, { status: 201 });
 
     } catch (error) {

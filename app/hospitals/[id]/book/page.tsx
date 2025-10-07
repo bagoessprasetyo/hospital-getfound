@@ -10,6 +10,9 @@ interface HospitalBookingPageProps {
   params: {
     id: string
   }
+  searchParams: {
+    doctorId?: string
+  }
 }
 
 export async function generateMetadata({ params }: HospitalBookingPageProps): Promise<Metadata> {
@@ -39,7 +42,7 @@ export async function generateMetadata({ params }: HospitalBookingPageProps): Pr
   }
 }
 
-export default async function HospitalBookingPage({ params }: HospitalBookingPageProps) {
+export default async function HospitalBookingPage({ params, searchParams }: HospitalBookingPageProps) {
   // Check authentication first
   const user = await getUser()
   
@@ -104,6 +107,7 @@ export default async function HospitalBookingPage({ params }: HospitalBookingPag
             doctors={doctors || []}
             user={user}
             userProfile={profile}
+            preSelectedDoctorId={searchParams.doctorId}
           />
         </main>
       </div>

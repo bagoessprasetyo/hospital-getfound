@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { Search, Filter, MapPin, Phone, Star, Users, Clock, User, ChevronDown, X, DollarSign, Award, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -473,17 +474,24 @@ export function PublicDoctorList({
                   )}
                 </div>
                 
-                <Button 
-                  size="sm" 
-                  className={
-                    doctor.availability_count && doctor.availability_count > 0
-                      ? "bg-black hover:bg-gray-800 text-white"
-                      : "bg-gray-400 text-white cursor-not-allowed"
-                  }
-                  disabled={!doctor.availability_count || doctor.availability_count === 0}
-                >
-                  Book Appointment
-                </Button>
+                {doctor.availability_count && doctor.availability_count > 0 && doctor.hospitals && doctor.hospitals.length > 0 ? (
+                  <Link href={`/hospitals/${doctor.hospitals[0].id}/book?doctorId=${doctor.id}`}>
+                    <Button 
+                      size="sm" 
+                      className="bg-black hover:bg-gray-800 text-white"
+                    >
+                      Book Appointment
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    className="bg-gray-400 text-white cursor-not-allowed"
+                    disabled
+                  >
+                    Book Appointment
+                  </Button>
+                )}
               </div>
             </div>
           </div>

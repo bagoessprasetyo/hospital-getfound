@@ -41,6 +41,7 @@ interface HospitalBookingProps {
   doctors: DoctorWithHospitals[]
   user: User
   userProfile: UserProfile | null
+  preSelectedDoctorId?: string
 }
 
 const BOOKING_STEPS = [
@@ -51,7 +52,7 @@ const BOOKING_STEPS = [
   { id: 5, title: 'Confirmation', description: 'Review and confirm booking' },
 ]
 
-export function HospitalBooking({ hospital, doctors, user, userProfile }: HospitalBookingProps) {
+export function HospitalBooking({ hospital, doctors, user, userProfile, preSelectedDoctorId }: HospitalBookingProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [bookingData, setBookingData] = useState<BookingData>({
     hospital
@@ -60,7 +61,7 @@ export function HospitalBooking({ hospital, doctors, user, userProfile }: Hospit
   const [error, setError] = useState<string | null>(null)
   const [isBookingComplete, setIsBookingComplete] = useState(false)
 
-  // Initialize patient info with user profile data
+  // Initialize patient info with user profile data and pre-selected doctor
   useEffect(() => {
     if (userProfile && !bookingData.patientInfo) {
       setBookingData(prev => ({
@@ -77,6 +78,21 @@ export function HospitalBooking({ hospital, doctors, user, userProfile }: Hospit
       }))
     }
   }, [userProfile, user.email, bookingData.patientInfo])
+
+  // Pre-select doctor if doctorId is provided
+  useEffect(() => {
+    if (preSelectedDoctorId && doctors.length > 0 && !bookingData.doctor) {
+      const preSelectedDoctor = doctors.find(doctor => doctor.id === preSelectedDoctorId)
+      if (preSelectedDoctor) {
+        setBookingData(prev => ({
+          ...prev,
+          doctor: preSelectedDoctor
+        }))
+        // Skip to step 3 (time selection) if doctor is pre-selected
+        setCurrentStep(3)
+      }
+    }
+  }, [preSelectedDoctorId, doctors, bookingData.doctor])
 
   const handleStepComplete = (stepData: Partial<BookingData>) => {
     setBookingData(prev => ({ ...prev, ...stepData }))
