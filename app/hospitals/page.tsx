@@ -5,6 +5,7 @@ import { EnhancedHospitalList } from '@/components/hospitals/enhanced-hospital-l
 import { getHospitalsWithDetails, getFilterOptions } from '@/lib/supabase/hospitals'
 import { Suspense } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
+import { FloatingChatButton } from '@/components/chat/floating-chat-button'
 
 // Loading component for the hospital list - matching doctor page skeleton
 function HospitalListSkeleton() {
@@ -182,6 +183,9 @@ export default async function HospitalsPage({
             </div>
           </div>
         </footer>
+
+        {/* Floating Chat Button */}
+        <FloatingChatButton />
       </div>
     )
   } catch (error) {
@@ -304,6 +308,9 @@ export default async function HospitalsPage({
             </div>
           </div>
         </footer>
+
+        {/* Floating Chat Button */}
+        <FloatingChatButton />
       </div>
     )
   }

@@ -1,4 +1,5 @@
 import { PublicHeaderServer } from '@/components/homepage/public-header-server'
+import { FloatingChatButton } from '@/components/chat/floating-chat-button'
 
 export default function AboutPage() {
   return (
@@ -258,6 +259,8 @@ export default function AboutPage() {
           </div>
         </div>
       </footer>
+      {/* Floating Chat Button */}
+      <FloatingChatButton />
     </div>
   )
 }

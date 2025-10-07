@@ -1,6 +1,7 @@
 import { PublicHeaderServer } from '@/components/homepage/public-header-server'
 import { HeroSection } from '@/components/homepage/hero-section'
 import { FeaturedHospitals } from '@/components/homepage/featured-hospitals'
+import { FloatingChatButton } from '@/components/chat/floating-chat-button'
 
 export default function Home() {
   return (
@@ -156,6 +157,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Floating Chat Button */}
+      <FloatingChatButton />
     </div>
   )
 }

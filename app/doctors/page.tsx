@@ -4,6 +4,7 @@ import { PublicDoctorList } from '@/components/doctors/public-doctor-list'
 import { Card, CardContent } from '@/components/ui/card'
 import { getDoctorsWithDetails, getDoctorFilterOptions } from '@/lib/supabase/doctors'
 import { createClient } from '@/lib/supabase/server'
+import { FloatingChatButton } from '@/components/chat/floating-chat-button'
 
 function DoctorListSkeleton() {
   return (
@@ -185,6 +186,9 @@ export default async function DoctorsPage({
             </div>
           </div>
         </footer>
+
+        {/* Floating Chat Button */}
+        <FloatingChatButton />
       </div>
     )
   } catch (error) {
