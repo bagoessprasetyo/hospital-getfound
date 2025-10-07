@@ -26,16 +26,23 @@ interface Appointment {
   reason_for_visit: string | null
   notes: string | null
   consultation_fee: number | null
-  user_profiles: {
+  doctor_id: string
+  patient_id: string
+  hospital_id: string
+  patients: {
     id: string
-    full_name: string | null
-    email: string
-    phone: string | null
+    user_profiles: {
+      id: string
+      full_name: string | null
+      email: string
+      phone: string | null
+    }
   } | null
   hospitals: {
     id: string
     name: string
     address: string | null
+    phone: string | null
   } | null
 }
 
@@ -80,11 +87,14 @@ export function DoctorAppointmentsClient({
         .from('appointments')
         .select(`
           *,
-          user_profiles!appointments_patient_id_fkey (
+          patients!inner (
             id,
-            full_name,
-            email,
-            phone
+            user_profiles!inner (
+              id,
+              full_name,
+              email,
+              phone
+            )
           ),
           hospitals (
             id,
@@ -125,8 +135,8 @@ export function DoctorAppointmentsClient({
     if (searchTerm) {
       const term = searchTerm.toLowerCase()
       filtered = filtered.filter(appointment => 
-        appointment.user_profiles?.full_name?.toLowerCase().includes(term) ||
-        appointment.user_profiles?.email?.toLowerCase().includes(term) ||
+        appointment.patients?.user_profiles?.full_name?.toLowerCase().includes(term) ||
+        appointment.patients?.user_profiles?.email?.toLowerCase().includes(term) ||
         appointment.reason_for_visit?.toLowerCase().includes(term) ||
         appointment.hospitals?.name?.toLowerCase().includes(term)
       )
@@ -289,16 +299,41 @@ export function DoctorAppointmentsClient({
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {filteredAppointments.map((appointment) => (
-              <AppointmentCard
-                key={appointment.id}
-                appointment={appointment as any}
-                onUpdate={() => {
-                  // Refresh appointments after update
-                  window.location.reload()
-                }}
-              />
-            ))}
+            {filteredAppointments.map((appointment) => {
+              // Transform appointment to match PatientAppointment interface
+              const patientAppointment = {
+                ...appointment,
+                doctor: {
+                  id: appointment.doctor_id,
+                  specialization: 'General Practice', // Default value since we don't have this in the current query
+                  user_profile: {
+                    full_name: 'Dr. Unknown' // Default value since we don't have this in the current query
+                  }
+                },
+                hospital: appointment.hospitals ? {
+                  id: appointment.hospitals.id,
+                  name: appointment.hospitals.name,
+                  address: appointment.hospitals.address,
+                  phone: appointment.hospitals.phone || null
+                } : {
+                  id: '',
+                  name: 'Unknown Hospital',
+                  address: null,
+                  phone: null
+                }
+              }
+              
+              return (
+                <AppointmentCard
+                  key={appointment.id}
+                  appointment={patientAppointment as any}
+                  onUpdate={() => {
+                    // Refresh appointments after update
+                    window.location.reload()
+                  }}
+                />
+              )
+            })}
           </div>
         )}
       </div>

@@ -8,11 +8,14 @@ type AppointmentUpdate = Database['public']['Tables']['appointments']['Update']
 
 // Enhanced interface for appointment with all related data
 export interface AppointmentWithDetails extends Appointment {
-  user_profiles: {
+  patients: {
     id: string
-    full_name: string | null
-    email: string
-    phone: string | null
+    user_profiles: {
+      id: string
+      full_name: string | null
+      email: string
+      phone: string | null
+    }
   } | null
   hospitals: {
     id: string
@@ -78,11 +81,14 @@ export async function getDoctorAppointments(
     .from('appointments')
     .select(`
       *,
-      user_profiles!appointments_patient_id_fkey (
+      patients!appointments_patient_id_fkey (
         id,
-        full_name,
-        email,
-        phone
+        user_profiles (
+          id,
+          full_name,
+          email,
+          phone
+        )
       ),
       hospitals (
         id,

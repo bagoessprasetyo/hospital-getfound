@@ -116,6 +116,67 @@ export async function createDoctor(doctorData: CreateDoctorRequest, supabaseClie
 export async function updateDoctor(doctorData: UpdateDoctorRequest, supabaseClient?: SupabaseClient): Promise<Doctor> {
   const supabase = supabaseClient || await createClient();
   
+  // Update user profile data if provided
+  if (doctorData.first_name || doctorData.last_name || doctorData.email || doctorData.phone) {
+    // First get the doctor to find the user_id and current profile data
+    const { data: doctorRecord, error: doctorError } = await supabase
+      .from('doctors')
+      .select(`
+        user_id,
+        user_profiles!inner(
+          id,
+          full_name,
+          email,
+          phone
+        )
+      `)
+      .eq('id', doctorData.id)
+      .single();
+
+    if (doctorError) {
+      throw new Error(`Failed to fetch doctor: ${doctorError.message}`);
+    }
+
+    if (doctorRecord?.user_id && doctorRecord.user_profiles) {
+      const currentProfile = doctorRecord.user_profiles as any;
+      const profileUpdate: any = {};
+      
+      // Handle full_name construction
+      if (doctorData.first_name || doctorData.last_name) {
+        // Parse current full_name to get existing first/last names
+        const currentFullName = currentProfile.full_name || '';
+        const nameParts = currentFullName.split(' ');
+        const currentFirstName = nameParts[0] || '';
+        const currentLastName = nameParts.slice(1).join(' ') || '';
+        
+        // Use provided names or fall back to current names
+        const firstName = doctorData.first_name || currentFirstName;
+        const lastName = doctorData.last_name || currentLastName;
+        
+        if (firstName && lastName) {
+          profileUpdate.full_name = `${firstName} ${lastName}`;
+        } else if (firstName) {
+          profileUpdate.full_name = firstName;
+        }
+      }
+      
+      if (doctorData.email) profileUpdate.email = doctorData.email;
+      if (doctorData.phone) profileUpdate.phone = doctorData.phone;
+
+      // Only update if there are changes
+      if (Object.keys(profileUpdate).length > 0) {
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .update(profileUpdate)
+          .eq('id', doctorRecord.user_id);
+
+        if (profileError) {
+          throw new Error(`Failed to update user profile: ${profileError.message}`);
+        }
+      }
+    }
+  }
+  
   const { data, error } = await supabase
     .from('doctors')
     .update({

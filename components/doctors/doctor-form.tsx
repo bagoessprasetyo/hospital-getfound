@@ -133,46 +133,29 @@ export function DoctorForm({ doctor, isEdit = false }: DoctorFormProps) {
       const { hospital_ids, primary_hospital_id, first_name, last_name, email, phone, ...doctorData } = data
 
       if (isEdit && doctor) {
-        // Update user profile data
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .update({
-            full_name: `${first_name} ${last_name}`,
-            email: email,
-            phone: phone
-          })
-          .eq('id', doctor.user_id)
+        // Use API endpoint for updates to ensure proper permissions and validation
+        const response = await fetch(`/api/doctors/${doctor.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            first_name,
+            last_name,
+            email,
+            phone,
+            ...doctorData,
+            hospital_ids,
+            primary_hospital_id
+          }),
+        })
 
-        if (profileError) throw profileError
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.message || 'Failed to update doctor')
+        }
 
-        // Update doctor-specific data (excluding user profile fields)
-        const { error: updateError } = await supabase
-          .from('doctors')
-          .update(doctorData)
-          .eq('id', doctor.id)
-
-        if (updateError) throw updateError
-
-        // Update hospital relationships
-        // First, delete existing relationships
-        await supabase
-          .from('doctor_hospitals')
-          .delete()
-          .eq('doctor_id', doctor.id)
-
-        // Then, insert new relationships
-        const hospitalRelationships = hospital_ids.map(hospitalId => ({
-          doctor_id: doctor.id,
-          hospital_id: hospitalId,
-          is_primary: hospitalId === primary_hospital_id
-        }))
-
-        const { error: relationshipError } = await supabase
-          .from('doctor_hospitals')
-          .insert(hospitalRelationships)
-
-        if (relationshipError) throw relationshipError
-
+        const result = await response.json()
         toast.success('Doctor updated successfully!')
       } else {
         // Create new doctor with authentication
@@ -182,6 +165,10 @@ export function DoctorForm({ doctor, isEdit = false }: DoctorFormProps) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            first_name,
+            last_name,
+            email,
+            phone,
             ...doctorData,
             hospital_ids,
             primary_hospital_id

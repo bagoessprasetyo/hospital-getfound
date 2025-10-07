@@ -32,11 +32,14 @@ export default async function DoctorAppointmentsPage() {
     .from('appointments')
     .select(`
       *,
-      user_profiles!appointments_patient_id_fkey (
+      patients!inner (
         id,
-        full_name,
-        email,
-        phone
+        user_profiles!inner (
+          id,
+          full_name,
+          email,
+          phone
+        )
       ),
       hospitals (
         id,
